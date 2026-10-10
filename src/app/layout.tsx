@@ -7,6 +7,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { CookieConsent } from "@/components/cookie-consent";
 import { AnalyticsTracker } from "@/components/analytics-tracker";
+import { FloatingWhatsApp } from "@/components/floating-whatsapp";
 import { Toaster } from "@/components/ui/sonner";
 import { siteConfig } from "@/lib/site-config";
 
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <SiteHeader />
         <main className="flex-1">{children}</main>
         <SiteFooter />
+        <FloatingWhatsApp />
         <CookieConsent />
         <Suspense fallback={null}>
           <AnalyticsTracker />

@@ -6,8 +6,8 @@ export const siteConfig = {
     "Grikim Enterprise Ltd is your single trusted source in Kenya for logistics, tax consultancy, business registration, quarry materials, vehicle tracking and general supplies.",
   phone: "+254 703 250213",
   phoneHref: "tel:+254703250213",
-  email: "grikimenterpriseltd@gmail.com",
-  emailHref: "mailto:grikimenterpriseltd@gmail.com",
+  email: "info@grikimenterpriseltd.co.ke",
+  emailHref: "mailto:info@grikimenterpriseltd.co.ke",
   whatsappHref: "https://wa.me/254703250213",
   socials: {
     instagram: "https://instagram.com/grikimenterpriseltd",
