@@ -1,0 +1,35 @@
+name: Deploy to Truehost (cPanel)
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull latest commit into cPanel repo and run deployment tasks
+        env:
+          CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
+          CPANEL_USERNAME: ${{ secrets.CPANEL_USERNAME }}
+          CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
+          CPANEL_REPO_ROOT: ${{ secrets.CPANEL_REPO_ROOT }}
+        run: |
+          set -euo pipefail
+          AUTH="cpanel ${CPANEL_USERNAME}:${CPANEL_API_TOKEN}"
+          BASE="https://${CPANEL_HOST}:2083/execute"
+
+          echo "== Pulling latest main into cPanel-tracked repo =="
+          curl -sf -H "Authorization: $AUTH" \
+            --data-urlencode "repository_root=${CPANEL_REPO_ROOT}" \
+            --data-urlencode "pull=1" \
+            "$BASE/VersionControl/update" | tee update.json
+
+          SHA=$(node -e "console.log(JSON.parse(require('fs').readFileSync('update.json')).data.branch.sha)")
+          echo "Deployed commit will be: $SHA"
+
+          echo "== Running .cpanel.yml deployment tasks =="
+          curl -sf -H "Authorization: $AUTH" \
+            --data-urlencode "repository_root=${CPANEL_REPO_ROOT}" \
+            --data-urlencode "sha=${SHA}" \
+            "$BASE/VersionControlDeployment/create"

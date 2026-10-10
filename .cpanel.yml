@@ -1,0 +1,8 @@
+---
+deployment:
+  tasks:
+    - export NVENV=/home/REPLACE_CPANEL_USER/nodevenv/REPLACE_APP_ROOT/REPLACE_NODE_VERSION/bin/activate
+    - export APPDIR=/home/REPLACE_CPANEL_USER/REPLACE_APP_ROOT
+    - source $NVENV && cd $APPDIR && npm ci
+    - source $NVENV && cd $APPDIR && npm run build
+    - mkdir -p $APPDIR/tmp && touch $APPDIR/tmp/restart.txt
