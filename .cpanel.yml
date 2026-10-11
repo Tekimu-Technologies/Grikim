@@ -1,8 +1,8 @@
 ---
 deployment:
   tasks:
-    - export NVENV=/home/lbecfxub/nodevenv/grikim-app/20/bin/activate
-    - export APPDIR=/home/lbecfxub/grikim-app
+    - export NVENV=$HOME/nodevenv/grikim-app/20/bin/activate
+    - export APPDIR=$HOME/grikim-app
     - source $NVENV && cd $APPDIR && npm ci
     - source $NVENV && cd $APPDIR && npm run build
     - mkdir -p $APPDIR/tmp && touch $APPDIR/tmp/restart.txt
