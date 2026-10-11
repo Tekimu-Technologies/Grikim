@@ -20,7 +20,11 @@ const SITE_URL = "https://grikimenterpriseltd.co.ke";
 // reputation plus a MIME attachment is a strong spam-filter trigger
 // (confirmed: Truehost hard-rejected both emails with "550 high-probability
 // spam" until the attachment was removed in favour of this).
-const LOGO_URL = `${SITE_URL}/email/logo.png`;
+// The square "G" mark, not the full cursive wordmark -- at header/footer
+// icon size (~40px) the full wordmark's fine script turns to illegible
+// mush. The mark is legible that small; "GRIKIM Enterprise Ltd" is set as
+// real text next to/under it instead of baked into the image.
+const LOGO_URL = `${SITE_URL}/logo-mark.png`;
 
 function escapeHtml(value: string) {
   return value

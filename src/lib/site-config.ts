@@ -10,9 +10,9 @@ export const siteConfig = {
   emailHref: "mailto:info@grikimenterpriseltd.co.ke",
   whatsappHref: "https://wa.me/254703250213",
   socials: {
-    instagram: "https://instagram.com/grikimenterpriseltd",
-    x: "https://x.com/grikimltd",
-    facebook: "https://facebook.com/",
+    instagram: "https://www.instagram.com/kimtai_griffin?mdxt=MWZxNGk0eWxuYXhvdA%3D%3D&utm_source=qr",
+    x: "https://x.com/kimuch14?s=11",
+    facebook: "https://www.facebook.com/share/1GzxXX5TSx/?mibextid=wwXIfr",
   },
   location: "Jaribuni, Kilifi County, Kenya",
 } as const;
