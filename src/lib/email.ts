@@ -1,14 +1,7 @@
 import nodemailer from "nodemailer";
-import { existsSync } from "fs";
-import { join } from "path";
 import { siteConfig } from "@/lib/site-config";
 import { logActivity, logError } from "@/lib/config-logger";
-import {
-  businessNotificationEmail,
-  customerConfirmationEmail,
-  EMAIL_LOGO_CID,
-  EMAIL_LOGO_PATH,
-} from "@/lib/email-templates";
+import { businessNotificationEmail, customerConfirmationEmail } from "@/lib/email-templates";
 
 let transporter: nodemailer.Transporter | null = null;
 
@@ -60,19 +53,20 @@ async function sendHtmlEmail(options: {
     return { delivered: false as const };
   }
 
-  const logoPath = join(process.cwd(), EMAIL_LOGO_PATH);
+  // MAIL_FROM is the visible "From" address (defaults to SMTP_USER, since
+  // on the current setup they're the same account). Kept as a separate
+  // variable in case the auth identity and the visible sender ever need to
+  // differ.
+  const fromAddress = process.env.MAIL_FROM || process.env.SMTP_USER;
 
   try {
     await client.sendMail({
-      from: `"Grikim Website" <${process.env.SMTP_USER}>`,
+      from: `"Grikim Website" <${fromAddress}>`,
       to,
       replyTo,
       subject,
       text,
       html,
-      attachments: existsSync(logoPath)
-        ? [{ filename: "logo.png", path: logoPath, cid: EMAIL_LOGO_CID }]
-        : [],
     });
   } catch (error) {
     logError(`Failed to send ${logLabel} "${subject}": ${error instanceof Error ? error.message : String(error)}`);

@@ -16,10 +16,11 @@ const COLOR = {
 } as const;
 
 const SITE_URL = "https://grikimenterpriseltd.co.ke";
-const LOGO_CID = "grikim-logo";
-
-export const EMAIL_LOGO_CID = LOGO_CID;
-export const EMAIL_LOGO_PATH = "public/email/logo.png";
+// Hosted, not a cid: attachment -- a brand-new sending domain with zero
+// reputation plus a MIME attachment is a strong spam-filter trigger
+// (confirmed: Truehost hard-rejected both emails with "550 high-probability
+// spam" until the attachment was removed in favour of this).
+const LOGO_URL = `${SITE_URL}/email/logo.png`;
 
 function escapeHtml(value: string) {
   return value
@@ -88,7 +89,7 @@ function layout(options: { previewText: string; eyebrow: string; title: string; 
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td width="48" style="vertical-align:middle;">
-                    <img src="cid:${LOGO_CID}" width="40" height="40" alt="Grikim" style="display:block;border-radius:9px;"/>
+                    <img src="${LOGO_URL}" width="40" height="40" alt="Grikim" style="display:block;border-radius:9px;"/>
                   </td>
                   <td style="vertical-align:middle;padding-left:12px;">
                     <div style="font-family:'Segoe UI',Helvetica,Arial,sans-serif;font-size:17px;font-weight:700;color:${COLOR.primaryForeground};letter-spacing:0.01em;">
@@ -125,7 +126,7 @@ function layout(options: { previewText: string; eyebrow: string; title: string; 
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td align="center" style="padding-top:22px;">
-                    <img src="cid:${LOGO_CID}" width="32" height="32" alt="Grikim" style="display:block;border-radius:7px;margin:0 auto 10px;"/>
+                    <img src="${LOGO_URL}" width="32" height="32" alt="Grikim" style="display:block;border-radius:7px;margin:0 auto 10px;"/>
                     <div style="font-family:'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;font-weight:700;color:${COLOR.foreground};">
                       ${escapeHtml(siteConfig.name)}
                     </div>
