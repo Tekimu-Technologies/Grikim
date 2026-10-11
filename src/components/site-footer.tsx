@@ -12,13 +12,7 @@ export function SiteFooter() {
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <div className="flex items-center gap-2">
-              <Image src="/logo-mark.png" alt="" width={256} height={256} className="h-9 w-9 rounded-lg" />
-              <span className="flex flex-col leading-tight">
-                <span className="text-lg font-bold tracking-tight">GRIKIM</span>
-                <span className="text-sm text-muted-foreground">Enterprise Ltd</span>
-              </span>
-            </div>
+            <Image src="/logo-wide.png" alt="Grikim Enterprise Ltd" width={1346} height={626} className="h-12 w-auto rounded-md" />
             <p className="mt-3 max-w-xs text-sm text-muted-foreground">
               {siteConfig.tagline} A proudly Kenyan enterprise.
             </p>

@@ -20,11 +20,13 @@ const SITE_URL = "https://grikimenterpriseltd.co.ke";
 // reputation plus a MIME attachment is a strong spam-filter trigger
 // (confirmed: Truehost hard-rejected both emails with "550 high-probability
 // spam" until the attachment was removed in favour of this).
-// The square "G" mark, not the full cursive wordmark -- at header/footer
-// icon size (~40px) the full wordmark's fine script turns to illegible
-// mush. The mark is legible that small; "GRIKIM Enterprise Ltd" is set as
-// real text next to/under it instead of baked into the image.
-const LOGO_URL = `${SITE_URL}/logo-mark.png`;
+// Full wordmark, not the "G" mark -- the "G" is favicon-only by design;
+// everywhere else shows the actual "GRIKIM Enterprise Ltd" lettering.
+// Two variants: white-on-transparent for the already-orange header band,
+// the orange-card version for the light footer.
+const LOGO_URL_ON_COLOR = `${SITE_URL}/email/logo-white.png`;
+const LOGO_URL_ON_LIGHT = `${SITE_URL}/email/logo.png`;
+const LOGO_ASPECT = 1346 / 626;
 
 function escapeHtml(value: string) {
   return value
@@ -89,19 +91,8 @@ function layout(options: { previewText: string; eyebrow: string; title: string; 
 
           <!-- Header band -->
           <tr>
-            <td style="background:linear-gradient(135deg,${COLOR.primary},${COLOR.primaryDark});background-color:${COLOR.primary};padding:26px 28px;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td width="48" style="vertical-align:middle;">
-                    <img src="${LOGO_URL}" width="40" height="40" alt="Grikim" style="display:block;border-radius:9px;"/>
-                  </td>
-                  <td style="vertical-align:middle;padding-left:12px;">
-                    <div style="font-family:'Segoe UI',Helvetica,Arial,sans-serif;font-size:17px;font-weight:700;color:${COLOR.primaryForeground};letter-spacing:0.01em;">
-                      GRIKIM <span style="font-weight:400;opacity:0.9;">Enterprise Ltd</span>
-                    </div>
-                  </td>
-                </tr>
-              </table>
+            <td style="background:linear-gradient(135deg,${COLOR.primary},${COLOR.primaryDark});background-color:${COLOR.primary};padding:24px 28px;">
+              <img src="${LOGO_URL_ON_COLOR}" width="${Math.round(52 * LOGO_ASPECT)}" height="52" alt="Grikim Enterprise Ltd" style="display:block;"/>
             </td>
           </tr>
 
@@ -130,10 +121,7 @@ function layout(options: { previewText: string; eyebrow: string; title: string; 
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td align="center" style="padding-top:22px;">
-                    <img src="${LOGO_URL}" width="32" height="32" alt="Grikim" style="display:block;border-radius:7px;margin:0 auto 10px;"/>
-                    <div style="font-family:'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;font-weight:700;color:${COLOR.foreground};">
-                      ${escapeHtml(siteConfig.name)}
-                    </div>
+                    <img src="${LOGO_URL_ON_LIGHT}" width="${Math.round(42 * LOGO_ASPECT)}" height="42" alt="Grikim Enterprise Ltd" style="display:block;margin:0 auto 10px;"/>
                     <div style="font-family:'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;color:${COLOR.mutedForeground};margin-top:4px;">
                       ${escapeHtml(siteConfig.tagline)}
                     </div>

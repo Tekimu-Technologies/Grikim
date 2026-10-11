@@ -22,15 +22,9 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/80 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
-          <Image src="/logo-mark.png" alt="" width={256} height={256} className="h-9 w-9 rounded-lg" priority />
-          <span className="flex flex-col leading-tight">
-            <span className="text-base font-bold">GRIKIM</span>
-            <span className="text-[11px] font-medium text-muted-foreground">
-              Enterprise Ltd
-            </span>
-          </span>
+      <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <Link href="/" className="flex items-center" aria-label="Grikim Enterprise Ltd — home">
+          <Image src="/logo-wide.png" alt="Grikim Enterprise Ltd" width={1346} height={626} className="h-12 w-auto rounded-md sm:h-14" priority />
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
