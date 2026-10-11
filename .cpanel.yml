@@ -1,6 +1,7 @@
 ---
 deployment:
   tasks:
+    - cd $HOME/grikim-app && git checkout -- . && git clean -fd
     - source $HOME/nodevenv/grikim-app/20/bin/activate && cd $HOME/grikim-app && npm ci
     - source $HOME/nodevenv/grikim-app/20/bin/activate && cd $HOME/grikim-app && npm run build
     - mkdir -p $HOME/grikim-app/tmp && touch $HOME/grikim-app/tmp/restart.txt
