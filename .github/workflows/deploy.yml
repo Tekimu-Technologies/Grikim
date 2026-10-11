@@ -57,16 +57,17 @@ jobs:
       - name: Install sshpass
         run: sudo apt-get update -qq && sudo apt-get install -y -qq sshpass
 
-      - name: Set up pinned known_hosts and SFTP command
+      - name: Set up pinned known_hosts
         run: |
           mkdir -p ~/.ssh
           printf '%s' "$KNOWN_HOSTS_CONTENT" > ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
-          echo 'SFTP=sshpass -p "${{ secrets.CPANEL_SFTP_PASSWORD }}" sftp -o UserKnownHostsFile=/home/runner/.ssh/known_hosts -o StrictHostKeyChecking=yes -o BatchMode=no -P ${{ secrets.CPANEL_SFTP_PORT }} ${{ secrets.CPANEL_SFTP_USER }}@${{ secrets.CPANEL_SFTP_HOST }}' >> "$GITHUB_ENV"
 
       - name: Upload build to server
+        env:
+          SSHPASS: ${{ secrets.CPANEL_SFTP_PASSWORD }}
         run: |
-          $SFTP <<'EOF'
+          sshpass -e sftp -o UserKnownHostsFile=/home/runner/.ssh/known_hosts -o StrictHostKeyChecking=yes -o BatchMode=no -P "${{ secrets.CPANEL_SFTP_PORT }}" "${{ secrets.CPANEL_SFTP_USER }}@${{ secrets.CPANEL_SFTP_HOST }}" <<'EOF'
           cd grikim-app
           -mkdir tmp
           put -r /tmp/grikim-deploy/.next
@@ -78,9 +79,11 @@ jobs:
           EOF
 
       - name: Restart app (touch tmp/restart.txt)
+        env:
+          SSHPASS: ${{ secrets.CPANEL_SFTP_PASSWORD }}
         run: |
           touch /tmp/restart.txt
-          $SFTP <<'EOF'
+          sshpass -e sftp -o UserKnownHostsFile=/home/runner/.ssh/known_hosts -o StrictHostKeyChecking=yes -o BatchMode=no -P "${{ secrets.CPANEL_SFTP_PORT }}" "${{ secrets.CPANEL_SFTP_USER }}@${{ secrets.CPANEL_SFTP_HOST }}" <<'EOF'
           cd grikim-app/tmp
           put /tmp/restart.txt restart.txt
           EOF
