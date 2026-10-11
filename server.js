@@ -1,6 +1,9 @@
 const { createServer } = require("http");
 const { parse } = require("url");
 const next = require("next");
+const { loadExternalEnv } = require("./load-external-env");
+
+loadExternalEnv();
 
 const port = parseInt(process.env.PORT, 10) || 3000;
 const app = next({ dev: false });

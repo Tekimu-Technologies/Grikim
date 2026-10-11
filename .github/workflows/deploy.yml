@@ -1,35 +1,96 @@
-name: Deploy to Truehost (cPanel)
+name: Deploy to Truehost (SFTP)
+
+# Builds on GitHub's runners (shared hosting was taking 25+ minutes to
+# compile this project and cPanel's deployment task runner times out long
+# before that finishes, which is why every cPanel-git-based deploy attempt
+# left an incomplete .next directory). Uploads only the finished build
+# output via SFTP -- not node_modules, which is 700MB/30k+ files and
+# impractical to transfer file-by-file. node_modules is installed
+# server-side instead, via cPanel's "Run NPM Install" button, which fetches
+# from npm's registry directly over Truehost's own network. That only needs
+# re-running when dependencies change, not on every deploy.
 
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: grikim-production-deploy
+  cancel-in-progress: false
+
+env:
+  KNOWN_HOSTS_CONTENT: |
+    [141.94.109.24]:1624 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOmuLh0vOlzbA6gZuAbGuMmMW/h/y3ZTRjiDAuAhNcKf
+    [141.94.109.24]:1624 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCr2zP/Z+a1Y15KEkeJSbQ9JYabQC1Y5XvxmUX1h8i61xIMNSP97Yd8cGplh+jJU3vZESxgUJMz4OD8wd7xNuSPm272yiG69af4Da8a7FLzDBrBquzmFSZ/vPgTIwxypWW/zZcCXc4lzcOTyndcCCz8EorAD/YqSpG5JSeKKTn1g6QCjvq8gxIOdrCI32Q+G4XI0O4qgsdheR9LTwDhpHbGP0zDiRY+SnCRq6uiu/SNppMBrHuPpdn+9zUdrW8/f4UZga//2lQH+hkVDWGhaGgq5Q+UBPri4F1RfhEtOJ8FriXY98HYTC15J6yWLrCZIiePJbVwLiaWWOQ2txYL4o+FrBwm1iq9bm5/Zgzt2TmxIFuAgF19s4ifNjoG7gZ8fVqf7+3/E83ve5N8mJm6ulrNM9p2Pql/3S4sBosqM2Gl6jMFCAgy3FtUgKErGwG84INEZpZ9IWTk6jRc97l80ccIoQD+RvwCjdIj/iWkdc5GFMnTYqsFQrNakrmeSGxSBqs=
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Pull latest commit into cPanel repo and run deployment tasks
-        env:
-          CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
-          CPANEL_USERNAME: ${{ secrets.CPANEL_USERNAME }}
-          CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
-          CPANEL_REPO_ROOT: ${{ secrets.CPANEL_REPO_ROOT }}
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies and build
         run: |
-          set -euo pipefail
-          AUTH="cpanel ${CPANEL_USERNAME}:${CPANEL_API_TOKEN}"
-          BASE="https://${CPANEL_HOST}:2083/execute"
+          npm ci
+          npm run build
 
-          echo "== Pulling latest main into cPanel-tracked repo =="
-          curl -sf -H "Authorization: $AUTH" \
-            --data-urlencode "repository_root=${CPANEL_REPO_ROOT}" \
-            --data-urlencode "pull=1" \
-            "$BASE/VersionControl/update" | tee update.json
+      - name: Build deploy staging directory
+        run: |
+          mkdir -p /tmp/grikim-deploy/.next
+          # Everything except .next/cache -- that folder only speeds up
+          # future local builds, the running server never reads it, and
+          # it's by far the largest part of .next (dropping it cuts the
+          # upload roughly 4x).
+          rsync -a --exclude=cache .next/ /tmp/grikim-deploy/.next/
+          cp -r public /tmp/grikim-deploy/public
+          cp server.js load-external-env.js package.json package-lock.json /tmp/grikim-deploy/
+          echo "Staging directory ready:"
+          du -sh /tmp/grikim-deploy
+          find /tmp/grikim-deploy -type f | wc -l
 
-          SHA=$(node -e "console.log(JSON.parse(require('fs').readFileSync('update.json')).data.branch.sha)")
-          echo "Deployed commit will be: $SHA"
+      - name: Install sshpass
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq sshpass
 
-          echo "== Running .cpanel.yml deployment tasks =="
-          curl -sf -H "Authorization: $AUTH" \
-            --data-urlencode "repository_root=${CPANEL_REPO_ROOT}" \
-            --data-urlencode "sha=${SHA}" \
-            "$BASE/VersionControlDeployment/create"
+      - name: Set up pinned known_hosts and SFTP command
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s' "$KNOWN_HOSTS_CONTENT" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+          echo 'SFTP=sshpass -p "${{ secrets.CPANEL_SFTP_PASSWORD }}" sftp -o UserKnownHostsFile=/home/runner/.ssh/known_hosts -o StrictHostKeyChecking=yes -o BatchMode=no -P ${{ secrets.CPANEL_SFTP_PORT }} ${{ secrets.CPANEL_SFTP_USER }}@${{ secrets.CPANEL_SFTP_HOST }}' >> "$GITHUB_ENV"
+
+      - name: Upload build to server
+        run: |
+          $SFTP <<'EOF'
+          cd grikim-app
+          -mkdir tmp
+          put -r /tmp/grikim-deploy/.next
+          put -r /tmp/grikim-deploy/public
+          put /tmp/grikim-deploy/server.js
+          put /tmp/grikim-deploy/load-external-env.js
+          put /tmp/grikim-deploy/package.json
+          put /tmp/grikim-deploy/package-lock.json
+          EOF
+
+      - name: Restart app (touch tmp/restart.txt)
+        run: |
+          touch /tmp/restart.txt
+          $SFTP <<'EOF'
+          cd grikim-app/tmp
+          put /tmp/restart.txt restart.txt
+          EOF
+
+      - name: Wait and health check
+        run: |
+          sleep 15
+          BODY=$(curl -sL --max-time 20 http://grikimenterpriseltd.co.ke/ || true)
+          if echo "$BODY" | grep -qi "Grikim"; then
+            echo "Health check passed."
+          else
+            echo "::warning::Health check did not find expected content -- app may still be restarting, or DNS/SSL not finished propagating. Check manually."
+          fi
