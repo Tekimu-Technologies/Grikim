@@ -40,6 +40,9 @@ jobs:
           npm ci
           npm run build
 
+      - name: Dependency audit (informational, does not block deploy)
+        run: npm audit --audit-level=high || true
+
       - name: Build deploy staging directory
         run: |
           mkdir -p /tmp/grikim-deploy/.next
@@ -49,7 +52,7 @@ jobs:
           # upload roughly 4x).
           rsync -a --exclude=cache .next/ /tmp/grikim-deploy/.next/
           cp -r public /tmp/grikim-deploy/public
-          cp server.js load-external-env.js package.json package-lock.json /tmp/grikim-deploy/
+          cp server.js load-external-env.js config-dir.js package.json package-lock.json /tmp/grikim-deploy/
           echo "Staging directory ready:"
           du -sh /tmp/grikim-deploy
           find /tmp/grikim-deploy -type f | wc -l
@@ -74,6 +77,7 @@ jobs:
           put -r /tmp/grikim-deploy/public
           put /tmp/grikim-deploy/server.js
           put /tmp/grikim-deploy/load-external-env.js
+          put /tmp/grikim-deploy/config-dir.js
           put /tmp/grikim-deploy/package.json
           put /tmp/grikim-deploy/package-lock.json
           EOF

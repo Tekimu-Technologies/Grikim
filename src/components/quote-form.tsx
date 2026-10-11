@@ -45,6 +45,7 @@ export function QuoteForm({
       email: String(formData.get("email") || ""),
       service,
       details: String(formData.get("details") || ""),
+      website: String(formData.get("website") || ""),
     };
 
     if (!payload.name || !payload.phone || !payload.service) {
@@ -92,6 +93,14 @@ export function QuoteForm({
 
   return (
     <form onSubmit={handleSubmit} className={className}>
+      <input
+        type="text"
+        name="website"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        className="pointer-events-none absolute left-[-9999px] top-auto h-px w-px overflow-hidden opacity-0"
+      />
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="name">Your name</Label>

@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { recordPageview } from "@/lib/analytics";
+import { getClientIp, rateLimit, isSameOrigin } from "@/lib/security";
 
 export async function POST(req: NextRequest) {
+  if (!isSameOrigin(req)) {
+    return new NextResponse(null, { status: 403 });
+  }
+  if (!rateLimit(`analytics:${getClientIp(req)}`, 60, 60 * 1000)) {
+    return new NextResponse(null, { status: 429 });
+  }
+
   let body: unknown;
   try {
     body = await req.json();

@@ -1,14 +1,15 @@
-import { appendFileSync, existsSync } from "fs";
+import { appendFileSync } from "fs";
 import { join } from "path";
-
-const configDir = process.env.GRIKIM_CONFIG_DIR || "/opt/lampp/grikim-config";
-const logsDir = join(configDir, "logs");
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { resolveConfigDir } = require("../../config-dir");
 
 function writeLine(file: "activity.log" | "error.log", message: string) {
-  if (!existsSync(logsDir)) return;
+  const configDir = resolveConfigDir();
+  if (!configDir) return;
+
   const line = `[${new Date().toISOString()}] ${message}\n`;
   try {
-    appendFileSync(join(logsDir, file), line);
+    appendFileSync(join(configDir, "logs", file), line);
   } catch {
     // Logging must never break the request it's logging.
   }
