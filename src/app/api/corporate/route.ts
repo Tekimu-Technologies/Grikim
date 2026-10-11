@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sendEnquiryEmail } from "@/lib/email";
+import { sendEnquiryEmail, sendCustomerConfirmation } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   let body: unknown;
@@ -24,18 +24,31 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Please select what you need." }, { status: 400 });
   }
 
+  const submitterName = name.trim();
+  const submitterEmail = email.trim();
+  const rows = [
+    { label: "Company / organisation", value: typeof company === "string" ? company.trim() || "—" : "—" },
+    { label: "Name", value: submitterName },
+    { label: "Phone", value: phone.trim() },
+    { label: "Work email", value: submitterEmail },
+    { label: "Need", value: need.trim() },
+    { label: "Contract / tender details", value: typeof details === "string" ? details.trim() || "—" : "—" },
+  ];
+
   try {
     const result = await sendEnquiryEmail({
-      subject: `New corporate enquiry — ${need}`,
-      replyTo: email.trim(),
-      lines: [
-        { label: "Company / organisation", value: typeof company === "string" ? company.trim() || "—" : "—" },
-        { label: "Name", value: name.trim() },
-        { label: "Phone", value: phone.trim() },
-        { label: "Work email", value: email.trim() },
-        { label: "Need", value: need.trim() },
-        { label: "Contract / tender details", value: typeof details === "string" ? details.trim() || "—" : "—" },
-      ],
+      subject: `New corporate enquiry — ${need.trim()}`,
+      submitterName,
+      replyTo: submitterEmail,
+      rows,
+    });
+
+    void sendCustomerConfirmation({
+      to: submitterEmail,
+      customerName: submitterName,
+      heading: "We've received your corporate enquiry",
+      intro: `Thanks for reaching out about ${need.trim()}. Our team has your request and will be in touch shortly with next steps.`,
+      rows,
     });
 
     return NextResponse.json({ ok: true, delivered: result.delivered });
