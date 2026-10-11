@@ -42,3 +42,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Next.js regenerates these on every dev/build run (next build triggers it
+# too, not just next dev) -- tracking them dirties the working tree on
+# every server-side build and blocks cPanel's git deploy.
+/AGENTS.md
+/CLAUDE.md
