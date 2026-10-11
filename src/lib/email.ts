@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import { siteConfig } from "@/lib/site-config";
+import { logActivity, logError } from "@/lib/config-logger";
 
 let transporter: nodemailer.Transporter | null = null;
 
@@ -46,17 +47,24 @@ export async function sendEnquiryEmail(options: {
 
   if (!client) {
     console.info("[email] SMTP not configured — logging enquiry instead:\n" + text);
+    logError(`SMTP not configured — enquiry logged only: ${subject}`);
     return { delivered: false as const };
   }
 
-  await client.sendMail({
-    from: `"Grikim Website" <${process.env.SMTP_USER}>`,
-    to: siteConfig.email,
-    replyTo,
-    subject,
-    text,
-    html,
-  });
+  try {
+    await client.sendMail({
+      from: `"Grikim Website" <${process.env.SMTP_USER}>`,
+      to: siteConfig.email,
+      replyTo,
+      subject,
+      text,
+      html,
+    });
+  } catch (error) {
+    logError(`Failed to send "${subject}": ${error instanceof Error ? error.message : String(error)}`);
+    throw error;
+  }
 
+  logActivity(`Sent "${subject}" from ${replyTo ?? "unknown sender"}`);
   return { delivered: true as const };
 }
