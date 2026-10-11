@@ -7,9 +7,17 @@ let transporter: nodemailer.Transporter | null = null;
 function getTransporter() {
   if (transporter) return transporter;
 
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
+  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_PASS_B64 } = process.env;
 
-  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
+  // cPanel's Node.js App env var export script breaks on values containing
+  // "=" (like this password), mangling the vars that follow it. SMTP_PASS_B64
+  // is a padding-stripped base64 workaround for that cPanel bug; SMTP_PASS
+  // (plain) is used when set directly, e.g. in local dev.
+  const smtpPass = SMTP_PASS_B64
+    ? Buffer.from(SMTP_PASS_B64, "base64").toString("utf8")
+    : SMTP_PASS;
+
+  if (!SMTP_HOST || !SMTP_USER || !smtpPass) {
     return null;
   }
 
@@ -17,7 +25,7 @@ function getTransporter() {
     host: SMTP_HOST,
     port: Number(SMTP_PORT) || 587,
     secure: Number(SMTP_PORT) === 465,
-    auth: { user: SMTP_USER, pass: SMTP_PASS },
+    auth: { user: SMTP_USER, pass: smtpPass },
   });
 
   return transporter;
